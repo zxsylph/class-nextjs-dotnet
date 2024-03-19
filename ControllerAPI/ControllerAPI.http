@@ -4,3 +4,13 @@ GET {{ControllerAPI_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+GET {{ControllerAPI_HostAddress}}/api/User/
+Accept: application/json
+
+###
+
+GET {{ControllerAPI_HostAddress}}/api/User/1
+Accept: application/json
+
+###
