@@ -404,6 +404,16 @@ Npgsql.EntityFrameworkCore.PostgreSQL \
 --no-onconfiguring \
 --force
 
+Custom
+---
+dotnet ef dbcontext scaffold "Host=10.35.26.140;Port=5432;Database=class_nextjs_dotnet;Username=class_nextjs_dotnet;Password=$PASSWORD" \
+Npgsql.EntityFrameworkCore.PostgreSQL \
+--output-dir "Models" \
+--context ApplicationDbContext \
+--use-database-names \
+--no-onconfiguring \
+--force
+
 Step 10: ย้ายไฟล์ ApplicationDbContext ไปไว้ยัง Data/ApplicationDbContext.cs
 --
 using Microsoft.EntityFrameworkCore;
