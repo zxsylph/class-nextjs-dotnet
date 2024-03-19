@@ -81,4 +81,21 @@ public class UserController : ControllerBase
 
         return Ok(userToUpdate);
     }
+
+    // Delete user by id
+    // DELETE: api/User/{id}
+    [HttpDelete("{id}")]
+    public ActionResult DeleteUser(int id)
+    {
+        var userToDelete = users.Find(u => u.Id == id);
+
+        if (userToDelete == null)
+        {
+            return NotFound();
+        }
+
+        users.Remove(userToDelete);
+
+        return NoContent();
+    }
 }

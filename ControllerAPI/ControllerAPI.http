@@ -40,3 +40,9 @@ Content-Type: application/json
 }
 
 ###
+
+DELETE {{ControllerAPI_HostAddress}}/User/3
+Accept: application/json
+Content-Type: application/json
+
+###
