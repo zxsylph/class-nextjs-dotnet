@@ -6,8 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 // For Entity Framework with Npgsql
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-    options.UseNpgsql(builder.Configuration["ConnectionStrings:DefaultConnection"]);
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    // options.UseNpgsql(builder.Configuration["ConnectionStrings:DefaultConnection"]);
 });
 
 // Add services to the container.
