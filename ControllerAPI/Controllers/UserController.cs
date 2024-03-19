@@ -46,4 +46,14 @@ public class UserController : ControllerBase
 
         return Ok(user);
     }
+
+    // Create new user
+    // POST: api/User
+    [HttpPost]
+    public ActionResult<User> CreateUser([FromBody] User user)
+    {
+        users.Add(user);
+
+        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+    }
 }

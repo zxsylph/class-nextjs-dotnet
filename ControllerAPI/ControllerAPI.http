@@ -1,16 +1,29 @@
-@ControllerAPI_HostAddress = http://localhost:5010
+@ControllerAPI_HostAddress = http://localhost:5010/api
 
-GET {{ControllerAPI_HostAddress}}/weatherforecast/
+GET {{ControllerAPI_HostAddress}}/weatherforecast
 Accept: application/json
 
 ###
 
-GET {{ControllerAPI_HostAddress}}/api/User/
+GET {{ControllerAPI_HostAddress}}/User
 Accept: application/json
 
 ###
 
-GET {{ControllerAPI_HostAddress}}/api/User/1
+GET {{ControllerAPI_HostAddress}}/User/1
 Accept: application/json
+
+###
+
+POST {{ControllerAPI_HostAddress}}/User
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": 3,
+  "username": "siriwan",
+  "email": "siriwan@email.com",
+  "fullname": "Siriwan Jaidee"
+}
 
 ###
