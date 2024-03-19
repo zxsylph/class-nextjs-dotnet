@@ -27,3 +27,16 @@ Content-Type: application/json
 }
 
 ###
+
+PUT {{ControllerAPI_HostAddress}}/User/3
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": 3,
+  "username": "somjai",
+  "email": "somjai@email.com",
+  "fullname": "Somjai Jaidee"
+}
+
+###

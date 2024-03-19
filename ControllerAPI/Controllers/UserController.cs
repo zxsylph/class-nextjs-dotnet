@@ -33,7 +33,7 @@ public class UserController : ControllerBase
     }
 
     // Get user by id
-    // GET: api/User/1
+    // GET: api/User/{id}
     [HttpGet("{id}")]
     public ActionResult<User> GetUser(int id)
     {
@@ -55,5 +55,30 @@ public class UserController : ControllerBase
         users.Add(user);
 
         return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+    }
+
+    // Update user by id
+    // PUT: api/User/{id}
+    [HttpPut("{id}")]
+    public IActionResult UpdateUser(int id, [FromBody] User user)
+    {
+        // Validate user id
+        if (id != user.Id)
+        {
+            return BadRequest();
+        }
+
+        var userToUpdate = users.Find(u => u.Id == id);
+
+        if (userToUpdate == null)
+        {
+            return NotFound();
+        }
+
+        userToUpdate.Username = user.Username;
+        userToUpdate.Email = user.Email;
+        userToUpdate.Fullname = user.Fullname;
+
+        return Ok(userToUpdate);
     }
 }
