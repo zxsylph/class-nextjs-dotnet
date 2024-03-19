@@ -9,3 +9,8 @@ GET {{StoreAPI_HostAddress}}/Product/testconnectdb
 Accept: application/json
 
 ###
+
+GET {{StoreAPI_HostAddress}}/Product
+Accept: application/json
+
+###

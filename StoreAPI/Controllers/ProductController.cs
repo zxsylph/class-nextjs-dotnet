@@ -29,4 +29,14 @@ public class ProductController : ControllerBase
             Response.WriteAsync("Not Connected");
         }
     }
+
+    // Get product list
+    // GET: /api/Product
+    [HttpGet]
+    public ActionResult<product> GetProducts()
+    {
+        var products = context.products.ToList();
+
+        return Ok(products);
+    }
 }
