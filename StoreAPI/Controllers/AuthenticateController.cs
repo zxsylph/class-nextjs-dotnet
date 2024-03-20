@@ -1,10 +1,10 @@
-
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.IdentityModel.Token.Jwt;
-using Microsoft.AspNetCore.Mvc;
-using StoreAPI.Data;
-using StoreAPI.Models;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using StoreAPI.Models;
 
 namespace StoreAPI.Controllers;
 
@@ -12,86 +12,79 @@ namespace StoreAPI.Controllers;
 [Route("api/[controller]")]
 public class AuthenticateController : ControllerBase
 {
+
     private readonly UserManager<IdentityUser> userManager;
     private readonly RoleManager<IdentityRole> roleManager;
     private readonly IConfiguration configuration;
-    private readonly ApplicationDbContext context;
-    private readonly IWebHostEnvironment env;
-    public AuthenticateController(ApplicationDbContext _context, IWebHostEnvironment _env, UserManager<IdentityUser> _userManager, RoleManager<IdentityRole> _roleManager, IConfiguration _configuration)
-    {
-        context = _context;
-        env = _env;
 
+    // Constructor
+    public AuthenticateController(
+        UserManager<IdentityUser> _userManager,
+        RoleManager<IdentityRole> _roleManager,
+        IConfiguration _configuration)
+    {
         userManager = _userManager;
         roleManager = _roleManager;
         configuration = _configuration;
     }
 
-    // Register new user
-    // POST: api/Authenticate/Register
+    // Register for normal user
     [HttpPost]
     [Route("register")]
-    public async Task<ActionResult> Register([FromBody] RegisterModel model)
+    public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
-        // check existing user
-        var existingUser = await userManager.FindByNameAsync(model.Username);
-        if (existingUser != null)
+        // เช็คว่ามี username นี้ในระบบแล้วหรือไม่
+        var userExist = await userManager.FindByNameAsync(model.Username);
+        if (userExist != null)
         {
             return StatusCode(
-                StatusCodes.Status400BadRequest,
+                StatusCodes.Status500InternalServerError,
                 new Response
                 {
                     Status = "Error",
-                    Message = "User already exists"
+                    Message = "User already exist!"
                 }
             );
         }
 
-        // create new user
-        IdentityUser newUser = new IdentityUser
+        // เช็คว่ามี email นี้ในระบบแล้วหรือไม่
+        IdentityUser user = new()
         {
-            UserName = model.Username,
             Email = model.Email,
-            SecurityStamp = Guid.NewGuid().ToString()
+            SecurityStamp = Guid.NewGuid().ToString(),
+            UserName = model.Username
         };
 
-        // add new user and role
-        var result = await userManager.CreateAsync(newUser, model.Password);
+        // สร้าง user ใหม่
+        var result = await userManager.CreateAsync(user, model.Password);
 
+        // ถ้าสร้างไม่สำเร็จ
         if (!result.Succeeded)
         {
             return StatusCode(
-               StatusCodes.Status500InternalServerError,
-               new Response
-               {
-                   Status = "Error",
-                   Message = "User creation failed"
-               }
-           );
+                StatusCodes.Status500InternalServerError,
+                new Response
+                {
+                    Status = "Error",
+                    Message = "User creation failed! Please check user details and try again."
+                }
+            );
         }
 
-
+        // สร้าง user สำเร็จ
         return Ok(new Response
         {
             Status = "Success",
-            Message = "User creation success"
-        })
-    }
-
-    // Login
-    // POST: /api/Authenticate/Login
-    [HttpPost]
-    [Route("login")]
-    public async Task<ActionResult> Login([FromBody] LoginModel model)
-    {
+            Message = "User created successfully!"
+        });
     }
 
     // Register for admin
     [HttpPost]
     [Route("register-admin")]
-    public async Task<ActionResult> RegisterAdmin([FromBody] RegisterModel model)
+    public async Task<IActionResult> RegisterAdmin([FromBody] RegisterModel model)
     {
-        var userExists = await _userManager.FindByNameAsync(model.Username!);
+        var userExists = await userManager.FindByNameAsync(model.Username!);
         if (userExists != null)
             return StatusCode(
                 StatusCodes.Status500InternalServerError,
@@ -109,7 +102,7 @@ public class AuthenticateController : ControllerBase
             UserName = model.Username
         };
 
-        var result = await _userManager.CreateAsync(user, model.Password!);
+        var result = await userManager.CreateAsync(user, model.Password!);
 
         if (!result.Succeeded)
             return StatusCode(
@@ -121,27 +114,64 @@ public class AuthenticateController : ControllerBase
                 }
             );
 
-        if (!await _roleManager.RoleExistsAsync(UserRoles.Admin))
-            await _roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
-        if (!await _roleManager.RoleExistsAsync(UserRoles.Manager))
-            await _roleManager.CreateAsync(new IdentityRole(UserRoles.Manager));
-        if (!await _roleManager.RoleExistsAsync(UserRoles.User))
-            await _roleManager.CreateAsync(new IdentityRole(UserRoles.User));
+        if (!await roleManager.RoleExistsAsync(UserRoles.Admin))
+            await roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
+        if (!await roleManager.RoleExistsAsync(UserRoles.Manager))
+            await roleManager.CreateAsync(new IdentityRole(UserRoles.Manager));
+        if (!await roleManager.RoleExistsAsync(UserRoles.User))
+            await roleManager.CreateAsync(new IdentityRole(UserRoles.User));
 
         return Ok(new Response { Status = "Success", Message = "User created successfully!" });
     }
 
-    // Method for generating JWT token
-    private JwtSecurityToken GenerateJwtToken(List<Claim> authClaims)
+    // Login
+    [HttpPost]
+    [Route("login")]
+    public async Task<IActionResult> Login([FromBody] LoginModel model)
     {
-        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]));
+        var user = await userManager.FindByNameAsync(model.Username!);
+
+        // ถ้า login สำเร็จ
+        if (user != null && await userManager.CheckPasswordAsync(user, model.Password!))
+        {
+            var userRoles = await userManager.GetRolesAsync(user);
+
+            var authClaims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            };
+
+            foreach (var userRole in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+
+            var token = GetToken(authClaims);
+
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                expiration = token.ValidTo
+            });
+        }
+
+        // ถ้า login ไม่สำเร็จ
+        return Unauthorized();
+    }
+
+    // Method for generating JWT token
+    private JwtSecurityToken GetToken(List<Claim> authClaims)
+    {
+        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]!));
 
         var token = new JwtSecurityToken(
-            issuer: configuration["JWT:Issuer"],
-            audience: configuration["JWT:Audience"],
+            issuer: configuration["JWT:ValidIssuer"],
+            audience: configuration["JWT:ValidAudience"],
+            expires: DateTime.Now.AddDays(1),
             claims: authClaims,
-            expires: DateTime.Now.AddDays(7),
             signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
         );
+        return token;
     }
 }
