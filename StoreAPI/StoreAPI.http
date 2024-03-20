@@ -43,6 +43,20 @@ Accept: application/json
 
 ###
 
+// Add new product
+POST {{StoreAPI_HostAddress}}/Product/upload
+Content-Type: multipart/form-data; boundary=MfnBoundry
+Accept: application/json
+
+--MfnBoundry
+Content-Disposition: form-data; name="imageFile"; filename="image.jpg"
+Content-Type: image/jpg
+
+< ./image.jpg
+--MfnBoundry--
+
+###
+
 // Update product
 PUT {{StoreAPI_HostAddress}}/Product/5
 Content-Type: application/json

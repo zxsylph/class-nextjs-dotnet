@@ -10,9 +10,12 @@ public class ProductController : ControllerBase
 {
     private readonly ApplicationDbContext context;
 
-    public ProductController(ApplicationDbContext _context)
+    private readonly IWebHostEnvironment env;
+
+    public ProductController(ApplicationDbContext _context, IWebHostEnvironment _env)
     {
         context = _context;
+        env = _env;
     }
 
     // Test db connection
@@ -110,6 +113,36 @@ public class ProductController : ControllerBase
 
         // ส่งข้อมูลกลับไปให้ผู้ใช้
         return Ok(product);
+    }
+
+    // ฟังก์ชันสำหรับการเพิ่มข้อมูลสินค้า
+    // POST: /api/Product
+    [HttpPost("upload")]
+    public async Task<ActionResult> UploadImage(IFormFile imageFile)
+    {
+        if (imageFile != null)
+        {
+            // create image filename
+            string fileName = Guid.NewGuid().ToString() + "." + Path.GetExtension(imageFile.FileName);
+
+            // create image path
+            string uploadPath = Path.Combine(env.ContentRootPath, "uploads");
+
+            if (!Directory.Exists(uploadPath))
+            {
+                Directory.CreateDirectory(uploadPath);
+            }
+
+            string filePath = Path.Combine(uploadPath, fileName);
+
+            // save image file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
+        }
+        // ส่งข้อมูลกลับไปให้ผู้ใช้
+        return NoContent();
     }
 
     // ฟังก์ชันสำหรับการแก้ไขข้อมูลสินค้า
