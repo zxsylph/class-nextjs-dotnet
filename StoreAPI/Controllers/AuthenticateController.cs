@@ -121,6 +121,8 @@ public class AuthenticateController : ControllerBase
         if (!await roleManager.RoleExistsAsync(UserRoles.User))
             await roleManager.CreateAsync(new IdentityRole(UserRoles.User));
 
+        await userManager.AddToRoleAsync(user, UserRoles.Admin);
+
         return Ok(new Response { Status = "Success", Message = "User created successfully!" });
     }
 

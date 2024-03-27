@@ -77,3 +77,45 @@ Accept: application/json
 // Delete product
 DELETE {{StoreAPI_HostAddress}}/Product/5
 Accept: application/json
+
+###
+
+POST {{StoreAPI_HostAddress}}/Authenticate/register
+Content-Type: application/json
+
+{
+  "username": "iamsamit",
+  "email": "samit@email.com",
+  "password": "Samit@1234"
+}
+
+###
+
+POST {{StoreAPI_HostAddress}}/Authenticate/register-admin
+Content-Type: application/json
+
+{
+  "username": "iamadmin",
+  "email": "admin@email.com",
+  "password": "Admin@1234"
+}
+
+###
+
+POST {{StoreAPI_HostAddress}}/Authenticate/login
+Content-Type: application/json
+
+{
+  "username": "iamsamit",
+  "password": "Samit@1234"
+}
+
+###
+
+POST {{StoreAPI_HostAddress}}/Authenticate/login
+Content-Type: application/json
+
+{
+  "username": "iamadmin",
+  "password": "Admin@1234"
+}
